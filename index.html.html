@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BarBer By Memo | Berlin</title>
+<style>
+:root{--bg:#0e0e0f;--card:#1a1a1c;--line:#2c2c30;--tx:#f4f1ea;--mu:#9a968c;--gold:#c9a24b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.w{max-width:480px;margin:0 auto;padding:20px 16px 40px}
+header{text-align:center;padding:12px 0 8px}
+.pole{font-size:34px}
+h1{margin:6px 0 2px;font-size:26px;letter-spacing:.5px}
+.sub{color:var(--mu);font-size:14px}
+.lang{float:right;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:6px 10px;font-size:13px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin:26px 0 10px}
+.row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.day{flex:0 0 58px;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:10px 0;text-align:center;font-size:12px}
+.day b{display:block;font-size:20px;margin-top:2px}
+.day.on,.svc.on,.slot.on{background:var(--gold);color:#111;border-color:var(--gold)}
+.svc{display:flex;justify-content:space-between;gap:12px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:14px;margin-bottom:8px;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.slot{background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:11px 0;font-size:15px}
+.slot:disabled{opacity:.3;text-decoration:line-through}
+input{width:100%;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:12px;padding:14px;font-size:16px;margin-bottom:8px}
+.go{width:100%;background:var(--gold);color:#111;border:0;border-radius:14px;padding:16px;font-size:17px;font-weight:700;margin-top:6px}
+.go:disabled{opacity:.4}
+.msg{margin-top:14px;padding:14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:15px;line-height:1.5}
+.wa{display:block;text-align:center;margin-top:10px;background:#25d366;color:#08210f;font-weight:700;border-radius:12px;padding:13px;text-decoration:none}
+.empty{color:var(--mu);font-size:14px}
+footer{text-align:center;color:var(--mu);font-size:13px;margin-top:30px;line-height:1.7}
+footer a{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="w">
+<button class="lang" id="lang">DE</button>
+<header>
+  <div class="pole">💈</div>
+  <h1>BarBer By Memo</h1>
+  <div class="sub">Berlin · Fade · Haircut · Bart</div>
+</header>
+
+<a class="wa" href="https://wa.me/491788355582?text=Hallo%20Memo%2C%20ich%20m%C3%B6chte%20einen%20Termin%20%2F%20Merhaba%20Memo%2C%20randevu%20almak%20istiyorum" style="margin-top:14px">💬 WhatsApp: Randevu / Termin</a>
+<div id="err" style="color:#f88;font-size:12px;margin-top:8px;word-break:break-all"></div>
+<h2 id="t1"></h2><div id="svcs"></div>
+<h2 id="t2"></h2><div class="row" id="days"></div>
+<h2 id="t3"></h2><div class="grid" id="slots"></div><div class="empty" id="none"></div>
+<h2 id="t4"></h2>
+<input id="nm" autocomplete="name">
+<input id="ph" type="tel" autocomplete="tel">
+<button class="go" id="go" disabled></button>
+<div id="res"></div>
+
+<footer>
+  <h2 id="t5" style="margin-top:0"></h2>
+  <div id="hrs"></div>
+  <div id="walk"></div>
+  <a href="https://wa.me/491788355582" id="wa2">WhatsApp: +49 178 8355582</a><br>
+  <a href="https://instagram.com/barberbymemo030">@barberbymemo030</a>
+</footer>
+</div>
+
+<script>
+window.onerror=function(m,u,l,c){var e=document.getElementById("err");if(e)e.textContent="Hata: "+m+" (satir "+l+")"};
+const HOURS={0:null,1:[10,19],2:[10,19],3:[10,19],4:[10,19],5:[9.5,20],6:[9,21]}; // 0=Pazar/Sonntag kapalı
+const SVC=[{id:"h",tr:"Saç kesim",de:"Haarschnitt",p:"15"},{id:"hy",tr:"Saç kesim + yıkama",de:"Haarschnitt + Waschen",p:"18"},{id:"s",tr:"Sakal kesim",de:"Bartschnitt",p:"15"},{id:"hs",tr:"Saç + sakal kesim",de:"Haare + Bart",p:"25"},{id:"hsf",tr:"Saç + sakal + yıkama + fön",de:"Haare + Bart + Waschen + Föhnen",p:"30"},{id:"c",tr:"Çocuk tıraşı",de:"Kinderhaarschnitt",p:"15"},{id:"c10",tr:"Çocuk tıraşı (10 yaş altı)",de:"Kinder unter 10 Jahren",p:"10"},{id:"vip",tr:"VIP komple kesim",de:"VIP Komplett",p:"35–40"}];
+const T={tr:{t1:"Hizmet",t2:"Gün seç",t3:"Boş saatler",t4:"Bilgilerin",t5:"İletişim",nm:"Adın",ph:"Telefon",go:"Randevu al",none:"Bu gün için boş saat yok.",walk:"Randevulu & randevusuz · Mit & ohne Termin",full:"Bu saat az önce doldu, başka saat seç.",ok:"Randevun alındı ✅",wa:"WhatsApp ile Memo'ya bildir",days:["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"],loc:"tr-TR"},
+de:{t1:"Leistung",t2:"Tag wählen",t3:"Freie Zeiten",t4:"Deine Daten",t5:"Kontakt",nm:"Name",ph:"Telefon",go:"Termin buchen",none:"Keine freien Zeiten an diesem Tag.",walk:"Mit & ohne Termin · Randevulu & randevusuz",full:"Diese Zeit ist gerade vergeben, bitte andere wählen.",ok:"Termin gebucht ✅",wa:"Per WhatsApp an Memo senden",days:["So","Mo","Di","Mi","Do","Fr","Sa"],loc:"de-DE"}};
+let L="tr",sel={svc:"h",day:null,time:null},booked=new Set(),db=null;
+const $=id=>document.getElementById(id),p2=n=>String(n).padStart(2,"0");
+const key=(d,t)=>d+"_"+t.replace(":","-");
+const ymd=d=>d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());
+const days=[];for(let i=0,d=new Date();days.length<14;i++){const x=new Date();x.setDate(d.getDate()+i);if(HOURS[x.getDay()])days.push(x)}
+sel.day=ymd(days[0]);
+
+// kayıtlar: ortak veritabanı varsa o, yoksa bu cihaz
+try{const s=JSON.parse(localStorage.getItem("memo_b")||"[]");s.forEach(k=>booked.add(k))}catch(e){}
+
+function render(){
+  const t=T[L];document.documentElement.lang=L;
+  ["t1","t2","t3","t4","t5"].forEach(k=>$(k).textContent=t[k]);
+  $("nm").placeholder=t.nm;$("ph").placeholder=t.ph;$("go").textContent=t.go;$("walk").textContent=t.walk;$("hrs").innerHTML=`${t.days[1]}–${t.days[4]} 10:00–19:00<br>${t.days[5]} 09:30–20:00<br>${t.days[6]} 09:00–21:00<br>${t.days[0]} ${L==="tr"?"kapalı":"geschlossen"}<br><br>`;$("lang").textContent=L==="tr"?"DE":"TR";
+  $("svcs").innerHTML=SVC.map(s=>`<button class="svc ${sel.svc===s.id?"on":""}" data-s="${s.id}"><span>${s[L]}</span><b>${s.p} €</b></button>`).join("");
+  $("days").innerHTML=days.map(d=>`<button class="day ${ymd(d)===sel.day?"on":""}" data-d="${ymd(d)}">${t.days[d.getDay()]}<b>${d.getDate()}</b></button>`).join("");
+  const now=new Date(),today=ymd(now),nowH=now.getHours()+now.getMinutes()/60;
+  let h="",n=0;
+  const H=HOURS[new Date(sel.day+"T12:00").getDay()];for(let x=H[0];x<H[1];x+=.5){
+    if(sel.day===today&&x<=nowH+.25)continue;
+    const tm=p2(Math.floor(x))+":"+(x%1?"30":"00"),b=booked.has(key(sel.day,tm));
+    if(!b)n++;
+    h+=`<button class="slot ${sel.time===tm?"on":""}" data-t="${tm}" ${b?"disabled":""}>${tm}</button>`;
+  }
+  $("slots").innerHTML=h;$("none").textContent=n?"":t.none;
+  $("go").disabled=!(sel.time&&$("nm").value.trim().length>1&&$("ph").value.trim().length>5);
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.s)sel.svc=b.dataset.s;
+  if(b.dataset.d){sel.day=b.dataset.d;sel.time=null}
+  if(b.dataset.t)sel.time=b.dataset.t;
+  if(b.id==="lang")L=L==="tr"?"de":"tr";
+  if(b.dataset.s||b.dataset.d||b.dataset.t||b.id==="lang")render();
+});
+["nm","ph"].forEach(i=>$(i).addEventListener("input",render));
+
+$("go").addEventListener("click",async()=>{
+  const t=T[L],k=key(sel.day,sel.time),s=SVC.find(x=>x.id===sel.svc);
+  if(booked.has(k)){$("res").innerHTML=`<div class="msg">${t.full}</div>`;return}
+  const name=$("nm").value.trim(),phone=$("ph").value.trim();
+  booked.add(k);
+  try{localStorage.setItem("memo_b",JSON.stringify([...booked]))}catch(e){}
+  if(db){try{await db.collection("bookings").doc(k).set({date:sel.day,time:sel.time,service:s.id,name,phone,at:Date.now()})}catch(e){}}
+  const dt=new Date(sel.day+"T12:00").toLocaleDateString(t.loc,{weekday:"long",day:"numeric",month:"long"});
+  const txt=`${L==="tr"?"Merhaba Memo, randevu almak istiyorum":"Hallo Memo, ich möchte einen Termin"}:\n${dt}, ${sel.time}\n${s[L]} (${s.p} €)\n${name} · ${phone}`;
+  $("res").innerHTML=`<div class="msg"><b>${t.ok}</b><br>${dt} · ${sel.time}<br>${s[L]} · ${s.p} €<br>${name.replace(/</g,"&lt;")}</div><a class="wa" href="https://wa.me/491788355582?text=${encodeURIComponent(txt)}">${t.wa}</a>`;
+  sel.time=null;render();
+});
+render();
+</script>
+</body>
+</html>
